@@ -2,22 +2,28 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { 
-  User, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged,
-  updateProfile
+  User as FirebaseUser 
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+
+interface User {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+}
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, displayName?: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  updateUserProfile: (displayName: string) => Promise<void>;
+  signInDemo: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,8 +33,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
+      if (firebaseUser) {
+        setUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+        });
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
 
@@ -37,23 +52,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      setUser(userCredential.user);
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      console.log('Sign in successful:', result.user);
     } catch (error: any) {
       console.error('Sign in error:', error);
       throw error;
     }
   };
 
-  const signUp = async (email: string, password: string, displayName?: string) => {
+  const signUp = async (email: string, password: string) => {
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      
-      if (displayName) {
-        await updateProfile(userCredential.user, { displayName });
-      }
-      
-      setUser(userCredential.user);
+      const result = await createUserWithEmailAndPassword(auth, email, password);
+      console.log('Sign up successful:', result.user);
     } catch (error: any) {
       console.error('Sign up error:', error);
       throw error;
@@ -63,21 +73,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       await signOut(auth);
-      setUser(null);
+      console.log('Logout successful');
     } catch (error: any) {
       console.error('Logout error:', error);
       throw error;
     }
   };
 
-  const updateUserProfile = async (displayName: string) => {
-    if (!user) throw new Error('No user logged in');
-    
+  const signInDemo = async () => {
     try {
-      await updateProfile(user, { displayName });
-      setUser({ ...user });
+      // Create a demo user object
+      const demoUser: User = {
+        uid: 'demo-user-123',
+        email: 'demo@healthmate.com',
+        displayName: 'Demo User',
+        photoURL: null,
+      };
+      
+      // Set the demo user directly
+      setUser(demoUser);
+      console.log('Demo sign in successful:', demoUser);
     } catch (error: any) {
-      console.error('Update profile error:', error);
+      console.error('Demo sign in error:', error);
       throw error;
     }
   };
@@ -88,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signUp,
     logout,
-    updateUserProfile,
+    signInDemo,
   };
 
   return (
