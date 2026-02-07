@@ -1,4 +1,4 @@
-# HealthMate - AI-Powered Health Tracking App
+HealthMate - AI-Powered Health Tracking App
 
 HealthMate is a comprehensive health tracking application that combines daily health logging with AI-powered insights to help users improve their wellness journey.
 
