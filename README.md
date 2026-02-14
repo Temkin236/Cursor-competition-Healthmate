@@ -217,4 +217,4 @@ If you encounter any issues:
 
 ---
 
-**HealthMate** - Your AI-powered health companion for a better tomorrow! 💪 
+**HealthMate**  Your AI-powered health companion for a better tomorrow! 💪 
